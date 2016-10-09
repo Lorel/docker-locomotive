@@ -7,9 +7,10 @@ dpkg-reconfigure -f noninteractive tzdata
 echo
 echo "Setting GEM environment..."
 rm -rf ~root/.gem
-export GEM_HOME /var/lib/gems/2.2.0
-export GEM_PATH /var/lib/gems/2.2.0
-export GEM_SPEC_CACHE /var/lib/gems/2.2.0/specs
+export GEM_HOME=/usr/local/rvm/gems/ruby-2.3.1
+export GEM_PATH=/usr/local/rvm/gems/ruby-2.3.1
+export GEM_SPEC_CACHE=/usr/local/rvm/gems/ruby-2.3.1/specifications
+export PATH=/usr/local/rvm/gems/ruby-2.3.1/bin:/usr/local/rvm/rubies/ruby-2.3.1/bin:$PATH
 gem environment
 
 echo
@@ -21,23 +22,23 @@ if [ ! -f /home/app/engine/app ]; then
 	echo
 	echo "Setting up Ruby on Rails..."
 	gem install rails -v 4.2.6
-	ln -sf /var/lib/gems/2.2.0/gems/railties-4.2.6/bin/rails /usr/local/bin/rails
+	ln -sf /usr/local/rvm/gems/ruby-2.3.1/gems/railties-4.2.6/bin/rails /usr/local/bin/rails
 	cd /home/app; rails new engine --skip-bundle --skip-active-record --skip
 	cd /home/app/engine
-	echo "gem 'locomotivecms', '~> 3.1.1'" >> "Gemfile"
-	echo "gem 'puma'" >> "Gemfile"
+	echo "gem 'locomotivecms', '~> 3.1.1'" >> Gemfile
 fi
 
-echo 
+echo
 echo "Installing ruby gems..."
-RAILS_ENV=production bundle install
-chown -R app:app /var/lib/gems
+cd /home/app/engine; RAILS_ENV=production bundle install
 
 if [ ! -f config/initializers/locomotive.rb ]; then
-	echo 
+	echo
 	echo "Installing locomotive..."
-	cd /home/app/engine; ./bin/rails generate locomotive:install
+	cd /home/app/engine; rails generate locomotive:install
 	sed -i 's/localhost/db/g' /home/app/engine/config/mongoid.yml
+	sed -i 's/# config.secret_key/config.secret_key/g' /home/app/engine/config/initializers/devise.rb
+	sed -i 's/# config.pepper/config.secret_key/g' /home/app/engine/config/initializers/devise.rb
 fi
 chown app:app -R /home/app
 
@@ -47,4 +48,5 @@ su - app -c "cd /home/app/engine; RAILS_ENV=production bundle exec rake assets:p
 
 echo
 echo "Starting Phusion Passenger Stand-alone..."
-RAILS_ENV=production bundle exec passenger start -a 0.0.0.0 -p 80 -e production
+/bin/bash -l -c "rvm wrapper ruby-2.3.1 --no-prefix --all"
+RAILS_ENV=production bundle exec passenger start -a 0.0.0.0 -p 8080 -e production
