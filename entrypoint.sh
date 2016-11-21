@@ -25,7 +25,7 @@ if [ ! -f /home/app/engine/app ]; then
 	ln -sf /usr/local/rvm/gems/ruby-2.3.1/gems/railties-4.2.6/bin/rails /usr/local/bin/rails
 	cd /home/app; rails new engine --skip-bundle --skip-active-record --skip
 	cd /home/app/engine
-	echo "gem 'locomotivecms', '~> 3.1.1'" >> Gemfile
+	grep "gem 'locomotivecms', '~> 3.1.1'" Gemfile || echo "gem 'locomotivecms', '~> 3.1.1'" >> Gemfile
 fi
 
 echo
